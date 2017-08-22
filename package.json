@@ -6,6 +6,7 @@
   "author": "Miles Steele <miles@milessteele.com>",
   "license": "MIT",
   "dependencies": {
-    "iced-coffee-script": "^108.0.11"
+    "iced-coffee-script": "^108.0.11",
+    "request": "^2.81.0"
   }
 }
