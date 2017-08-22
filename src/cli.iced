@@ -1,4 +1,5 @@
 request = require 'request'
+moment = require 'moment'
 {MTA_BUSTIME_API_KEY} = require './secrets'
 
 main = (cb) ->
@@ -21,8 +22,8 @@ main = (cb) ->
   for bus in bus_list
     name = bus?.MonitoredVehicleJourney?.LineRef
     distance = bus?.MonitoredVehicleJourney?.MonitoredCall?.DistanceFromStop
-    arrival_time = Date.parse bus?.MonitoredVehicleJourney?.MonitoredCall?.ExpectedArrivalTime
-    console.log "#{name}: #{distance}m #{arrival_time}"
+    arrival_time = moment(Date.parse bus?.MonitoredVehicleJourney?.MonitoredCall?.ExpectedArrivalTime)
+    console.log "#{name}: #{distance}m #{arrival_time.fromNow()}"
   cb null
 
 main (err) ->
