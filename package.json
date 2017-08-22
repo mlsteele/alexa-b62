@@ -1,0 +1,11 @@
+{
+  "name": "b62",
+  "version": "1.0.0",
+  "description": "Alexa app for finding the next southbound b62",
+  "main": "index.js",
+  "author": "Miles Steele <miles@milessteele.com>",
+  "license": "MIT",
+  "dependencies": {
+    "iced-coffee-script": "^108.0.11"
+  }
+}
