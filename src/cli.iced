@@ -1,8 +1,9 @@
 request = require 'request'
 moment = require 'moment'
+_ = require 'lodash'
 {MTA_BUSTIME_API_KEY} = require './secrets'
 
-main = (cb) ->
+get_bus_list = (cb) ->
   await request {
     url: "http://bustime.mta.info/api/siri/stop-monitoring.json"
     json: true
@@ -14,17 +15,37 @@ main = (cb) ->
   }, defer(err, res, body)
   if err?
     return cb err
-  console.log err
-  console.log res.statusCode
+  if res.statusCode != 200
+    return cb (new Error "http status code: #{res.statusCode}")
   bus_list = body.Siri?.ServiceDelivery?.StopMonitoringDelivery[0]?.MonitoredStopVisit
-  unless bus_list?
-    return cb (new Error "no bus list")
+  bus_list = _.chain(bus_list).filter( (bus) ->
+    bus?.MonitoredVehicleJourney?.LineRef is "MTA NYCT_B62"
+  ).map(
+    (bus) -> {
+      line: bus?.MonitoredVehicleJourney?.PublishedLineName?[0] or bus?.MonitoredVehicleJourney?.LineRef
+      # Distance in meters
+      distance: bus?.MonitoredVehicleJourney?.MonitoredCall?.DistanceFromStop
+      # Moment of arrival. Possibly invalid.
+      arrival_time: moment(Date.parse bus?.MonitoredVehicleJourney?.MonitoredCall?.ExpectedArrivalTime)
+      source: bus
+    }
+  ).sortBy([(bus) ->
+    # Sort buses with arrival times first.
+    if bus.arrival_time.isValid()
+      "aaa-#{bus.arrival_time.toISOString()}"
+    else
+      "bbb-#{bus.distance}"
+  ]).value()
+  cb null, bus_list
+  
+main = (cb) ->
+  await get_bus_list defer err, bus_list
+  if err?
+    return cb err
   for bus in bus_list
-    name = bus?.MonitoredVehicleJourney?.LineRef
-    distance = bus?.MonitoredVehicleJourney?.MonitoredCall?.DistanceFromStop
-    arrival_time = moment(Date.parse bus?.MonitoredVehicleJourney?.MonitoredCall?.ExpectedArrivalTime)
-    console.log "#{name}: #{distance}m #{arrival_time.fromNow()}"
-  cb null
+    console.log "#{bus.line} #{bus.distance}m #{bus.arrival_time.fromNow()}"
+  if bus_list.length is 0
+    console.log "no buses"
 
 main (err) ->
   if err?
