@@ -1,5 +1,7 @@
 .DS_Store
+/.envrc
 /build
 /build-stamp
+/build.zip
 
 lib/secrets.js
