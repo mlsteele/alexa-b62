@@ -1,5 +1,6 @@
 Alexa = require 'alexa-sdk'
 {ALEXA_APP_ID} = require './secrets'
+{get_bus_list} = require './api'
 
 handlers =
   "AMAZON.CancelIntent": ->
@@ -9,7 +10,26 @@ handlers =
   "AMAZON.StopIntent": ->
     this.emit ":tell", "fine"
   "List": ->
-    this.emit ":tell", "NO BUSSES"
+    await get_bus_list defer err, bus_list
+    if err?
+      console.log "API Error: #{err}"
+      this.emit ":tell", "API error"
+      return
+    if bus_list.length is 0
+      this.emit ":tell", "no buses"
+      return
+    watchagonnasay = "one "
+    first = true
+    for bus in bus_list.slice(0,2)
+      console.log "#{bus.line} #{bus.distance}m #{bus.arrival_time.fromNow()}"
+      if not first
+        watchagonnasay += " . And another "
+      if bus.arrival_time?.isValid?()
+        watchagonnasay += "arriving #{bus.arrival_time.fromNow()}"
+      else
+        watchagonnasay += "#{bus.distance / 1609.34} miles away"
+      first = false
+    this.emit ":tell", watchagonnasay
   "Unhandled": ->
     this.emit ":tell", "beep boop"
 

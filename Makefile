@@ -12,6 +12,7 @@ build/%.js: src/%.iced
 $(BUILD_STAMP): \
 	build/cli.js \
 	build/alexa.js \
+	build/api.js \
 	build/secrets.js
 	date > $@
 
