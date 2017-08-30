@@ -27,7 +27,9 @@ handlers =
       if bus.arrival_time?.isValid?()
         watchagonnasay += "arriving #{bus.arrival_time.fromNow()}"
       else
-        watchagonnasay += "#{bus.distance / 1609.34} miles away"
+        in_miles = bus.distance / 1609.34
+        less_decimals = parseFloat(Math.round(in_miles * 100) / 100).toFixed(2)
+        watchagonnasay += "#{less_decimals} miles away"
       first = false
     this.emit ":tell", watchagonnasay
   "Unhandled": ->
